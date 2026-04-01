@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 type AdminNotification = {
@@ -27,7 +26,6 @@ export function AdminNotificationList({
   notifications: AdminNotification[]
 }) {
   const [items, setItems] = useState(notifications)
-  const router = useRouter()
   const unreadCount = items.filter((notification) => !notification.readAt).length
 
   async function markAsRead(id: string) {
@@ -55,7 +53,6 @@ export function AdminNotificationList({
             : notification,
         ),
       )
-      router.refresh()
     }
   }
 
@@ -75,7 +72,6 @@ export function AdminNotificationList({
         readAt: notification.readAt ?? new Date(),
       })),
     )
-    router.refresh()
   }
 
   if (!items.length) {

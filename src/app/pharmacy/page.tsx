@@ -5,10 +5,13 @@ import { NewProductForm } from '@/components/new-product-form'
 import { PrescriptionReviewList } from '@/components/prescription-review-list'
 import { requireUser } from '@/lib/auth'
 
-function buildHref(orderStatus: string) {
+function buildHref(orderStatus: string, prescriptionStatus: string) {
   const params = new URLSearchParams()
   if (orderStatus && orderStatus !== 'all') {
     params.set('orderStatus', orderStatus)
+  }
+  if (prescriptionStatus && prescriptionStatus !== 'all') {
+    params.set('prescriptionStatus', prescriptionStatus)
   }
   const query = params.toString()
   return query ? `/pharmacy?${query}` : '/pharmacy'
@@ -17,7 +20,7 @@ function buildHref(orderStatus: string) {
 export default async function PharmacyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ orderStatus?: string }>
+  searchParams: Promise<{ orderStatus?: string; prescriptionStatus?: string }>
 }) {
   const user = await requireUser(['PHARMACY'])
   const pharmacyId = user.pharmacyId
@@ -25,6 +28,10 @@ export default async function PharmacyPage({
   const statusFilter =
     resolvedSearchParams.orderStatus && resolvedSearchParams.orderStatus !== 'all'
       ? resolvedSearchParams.orderStatus
+      : ''
+  const prescriptionStatusFilter =
+    resolvedSearchParams.prescriptionStatus && resolvedSearchParams.prescriptionStatus !== 'all'
+      ? resolvedSearchParams.prescriptionStatus
       : ''
 
   if (!pharmacyId) {
@@ -46,8 +53,14 @@ export default async function PharmacyPage({
 
   const pharmacy = pharmacies.find((item) => item.id === pharmacyId)
   const availableStatuses = Array.from(new Set(dashboard.orders.map((order) => order.status)))
+  const availablePrescriptionStatuses = Array.from(
+    new Set(dashboard.prescriptions.map((prescription) => prescription.status)),
+  )
   const filteredOrders = dashboard.orders.filter(
     (order) => !statusFilter || order.status === statusFilter,
+  )
+  const filteredPrescriptions = dashboard.prescriptions.filter(
+    (prescription) => !prescriptionStatusFilter || prescription.status === prescriptionStatusFilter,
   )
 
   function chipClass(active: boolean) {
@@ -122,6 +135,9 @@ export default async function PharmacyPage({
             <h3>Fulfillment queue</h3>
             <p className="muted">Track your assigned pharmacy orders.</p>
           </div>
+          <Link href="/api/pharmacy/exports/orders" className="button button-secondary">
+            Export orders CSV
+          </Link>
         </div>
         <div className="card" style={{ marginBottom: 18 }}>
           <div className="section-heading">
@@ -134,13 +150,17 @@ export default async function PharmacyPage({
             </Link>
           </div>
           <div className="hero-actions" style={{ flexWrap: 'wrap' }}>
-            <Link href={buildHref('') as never} className={chipClass(!statusFilter)} aria-pressed={!statusFilter}>
+            <Link
+              href={buildHref('', prescriptionStatusFilter) as never}
+              className={chipClass(!statusFilter)}
+              aria-pressed={!statusFilter}
+            >
               All orders
             </Link>
             {availableStatuses.map((status) => (
               <Link
                 key={status}
-                href={buildHref(status) as never}
+                href={buildHref(status, prescriptionStatusFilter) as never}
                 className={chipClass(statusFilter === status)}
                 aria-pressed={statusFilter === status}
               >
@@ -178,7 +198,37 @@ export default async function PharmacyPage({
             <p className="muted">Approve or reject documents assigned to your pharmacy.</p>
           </div>
         </div>
-        <PrescriptionReviewList prescriptions={dashboard.prescriptions} />
+        <div className="card" style={{ marginBottom: 18 }}>
+          <div className="section-heading">
+            <div>
+              <h4>Quick filters</h4>
+              <p className="muted">Switch prescription status chips instantly.</p>
+            </div>
+            <Link href="/pharmacy" className="button button-secondary">
+              Clear prescriptions
+            </Link>
+          </div>
+          <div className="hero-actions" style={{ flexWrap: 'wrap' }}>
+            <Link
+              href={buildHref(statusFilter, '') as never}
+              className={chipClass(!prescriptionStatusFilter)}
+              aria-pressed={!prescriptionStatusFilter}
+            >
+              All prescriptions
+            </Link>
+            {availablePrescriptionStatuses.map((status) => (
+              <Link
+                key={status}
+                href={buildHref(statusFilter, status) as never}
+                className={chipClass(prescriptionStatusFilter === status)}
+                aria-pressed={prescriptionStatusFilter === status}
+              >
+                {status.replaceAll('_', ' ')}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <PrescriptionReviewList prescriptions={filteredPrescriptions} />
       </div>
     </section>
   )

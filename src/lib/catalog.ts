@@ -1,6 +1,14 @@
 import 'server-only'
 
+import { PharmacyStatus, Prisma } from '@prisma/client'
 import { getPrisma } from '@/lib/db'
+
+export type PharmacyApprovalRecord = Prisma.PharmacyGetPayload<{
+  include: {
+    _count: { select: { products: true; pharmacyOrders: true } }
+    users: { select: { name: true; email: true } }
+  }
+}>
 
 export async function getCategories() {
   const prisma = getPrisma()
@@ -19,6 +27,43 @@ export async function getPharmacies() {
       users: { select: { name: true, email: true } },
     },
   })
+}
+
+export async function getPharmacyApprovalsPage(options?: {
+  page?: number
+  pageSize?: number
+  status?: string
+}) {
+  const prisma = getPrisma()
+  const pageSize = Math.max(1, Math.min(options?.pageSize ?? 8, 24))
+  const page = Math.max(1, options?.page ?? 1)
+  const status = options?.status?.trim()
+  const where: Prisma.PharmacyWhereInput =
+    status && status !== 'all' ? { status: status as PharmacyStatus } : {}
+
+  const total = await prisma.pharmacy.count({ where })
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const items: PharmacyApprovalRecord[] = await prisma.pharmacy.findMany({
+    where,
+    orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+    skip: (safePage - 1) * pageSize,
+    take: pageSize,
+    include: {
+      _count: { select: { products: true, pharmacyOrders: true } },
+      users: { select: { name: true, email: true } },
+    },
+  })
+
+  return {
+    items,
+    pagination: {
+      page: safePage,
+      pageSize,
+      total,
+      totalPages,
+    },
+  }
 }
 
 export async function getPendingPharmacies() {

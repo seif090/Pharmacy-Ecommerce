@@ -1,14 +1,92 @@
 import Link from 'next/link'
-import { getAdminNotifications, getCategories, getDashboardStats, getPharmacies, getProducts, getRecentOrders, getRecentPrescriptions, getUnreadAdminNotificationCount } from '@/lib/catalog'
+import {
+  getAdminNotifications,
+  getCategories,
+  getDashboardStats,
+  getPharmacies,
+  getPharmacyApprovalsPage,
+  getProducts,
+  getRecentOrders,
+  getRecentPrescriptions,
+  getUnreadAdminNotificationCount,
+} from '@/lib/catalog'
 import { formatCurrency } from '@/lib/utils'
 import { NewProductForm } from '@/components/new-product-form'
 import { OrdersTable } from '@/components/orders-table'
 import { PrescriptionReviewList } from '@/components/prescription-review-list'
 import { requireUser } from '@/lib/auth'
 import { PharmacyApprovalList } from '@/components/pharmacy-approval-list'
+import type { FilterChipItem } from '@/components/filter-chips'
 
-export default async function AdminPage() {
+function buildApprovalHref(status: string, page: number) {
+  const params = new URLSearchParams()
+  if (status && status !== 'all') {
+    params.set('approvalStatus', status)
+  }
+  if (page > 1) {
+    params.set('approvalPage', String(page))
+  }
+  const query = params.toString()
+  return query ? `/admin?${query}` : '/admin'
+}
+
+function buildApprovalPageItems(currentPage: number, totalPages: number, status: string) {
+  const pages: Array<{ value: string; label: string; href: string; disabled?: boolean }> = []
+
+  if (totalPages <= 1) {
+    return pages
+  }
+
+  const addPage = (page: number) => {
+    pages.push({
+      value: String(page),
+      label: String(page),
+      href: buildApprovalHref(status, page),
+    })
+  }
+
+  const addEllipsis = (key: string) => {
+    pages.push({
+      value: key,
+      label: '…',
+      href: '#',
+      disabled: true,
+    })
+  }
+
+  addPage(1)
+  const start = Math.max(2, currentPage - 1)
+  const end = Math.min(totalPages - 1, currentPage + 1)
+
+  if (start > 2) {
+    addEllipsis('start')
+  }
+
+  for (let page = start; page <= end; page += 1) {
+    addPage(page)
+  }
+
+  if (end < totalPages - 1) {
+    addEllipsis('end')
+  }
+
+  addPage(totalPages)
+
+  return pages
+}
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ approvalStatus?: string; approvalPage?: string }>
+}) {
   await requireUser(['ADMIN'])
+  const resolvedSearchParams = await searchParams
+  const approvalStatus =
+    resolvedSearchParams.approvalStatus && resolvedSearchParams.approvalStatus !== 'all'
+      ? resolvedSearchParams.approvalStatus
+      : 'all'
+  const approvalPage = Math.max(1, Number(resolvedSearchParams.approvalPage ?? '1') || 1)
 
   const [
     stats,
@@ -19,6 +97,7 @@ export default async function AdminPage() {
     pharmacies,
     notifications,
     unreadNotifications,
+    approvalPageData,
   ] = await Promise.all([
     getDashboardStats(),
     getProducts(),
@@ -28,7 +107,27 @@ export default async function AdminPage() {
     getPharmacies(),
     getAdminNotifications(),
     getUnreadAdminNotificationCount(),
+    getPharmacyApprovalsPage({
+      page: approvalPage,
+      pageSize: 8,
+      status: approvalStatus,
+    }),
   ])
+
+  const approvalStatuses = Array.from(new Set(pharmacies.map((pharmacy) => pharmacy.status)))
+  const statusItems: FilterChipItem[] = [
+    { value: 'all', label: 'All statuses', href: buildApprovalHref('all', 1) },
+    ...approvalStatuses.map((status) => ({
+      value: status,
+      label: status,
+      href: buildApprovalHref(status, 1),
+    })),
+  ]
+  const pageItems = buildApprovalPageItems(
+    approvalPageData.pagination.page,
+    approvalPageData.pagination.totalPages,
+    approvalStatus,
+  )
 
   return (
     <section className="section">
@@ -132,7 +231,13 @@ export default async function AdminPage() {
             </Link>
           </div>
         </div>
-        <PharmacyApprovalList pharmacies={pharmacies} />
+        <PharmacyApprovalList
+          pharmacies={approvalPageData.items}
+          selectedStatus={approvalStatus}
+          statusItems={statusItems}
+          pagination={approvalPageData.pagination}
+          pageItems={pageItems}
+        />
       </div>
 
       <div className="section">

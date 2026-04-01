@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getRecentOrders } from '@/lib/catalog'
 import { requireUser } from '@/lib/auth'
 import { PharmacyOrderBoard } from '@/components/pharmacy-order-board'
+import { FilterChips, type FilterChipItem } from '@/components/filter-chips'
 
 function buildHref(strategy: string, pharmacyId: string) {
   const params = new URLSearchParams()
@@ -76,9 +77,22 @@ export default async function AdminOrdersPage({
       return matchesPharmacy && matchesStrategy
     })
 
-  function chipClass(active: boolean) {
-    return active ? 'button' : 'button button-secondary'
-  }
+  const strategyItems: FilterChipItem[] = [
+    { value: 'all', label: 'All strategies', href: buildHref('all', pharmacyFilter || 'all') },
+    ...availableStrategies.map((strategy) => ({
+      value: strategy,
+      label: strategy.replaceAll('-', ' '),
+      href: buildHref(strategy, pharmacyFilter || 'all'),
+    })),
+  ]
+  const pharmacyItems: FilterChipItem[] = [
+    { value: 'all', label: 'All pharmacies', href: buildHref(strategyFilter || 'all', 'all') },
+    ...availablePharmacies.map((pharmacy) => ({
+      value: pharmacy.id,
+      label: pharmacy.name,
+      href: buildHref(strategyFilter || 'all', pharmacy.id),
+    })),
+  ]
 
   return (
     <section className="section">
@@ -98,7 +112,7 @@ export default async function AdminOrdersPage({
         </div>
       </div>
 
-        <div className="card" style={{ marginBottom: 18 }}>
+      <div className="card" style={{ marginBottom: 18 }}>
           <div className="section-heading">
             <div>
               <h3>Quick filters</h3>
@@ -109,44 +123,8 @@ export default async function AdminOrdersPage({
             </Link>
           </div>
         <div className="stack">
-          <div className="hero-actions" style={{ flexWrap: 'wrap' }}>
-            <Link
-              href={buildHref('', pharmacyFilter || 'all') as never}
-              className={chipClass(!strategyFilter)}
-              aria-pressed={!strategyFilter}
-            >
-              All strategies
-            </Link>
-            {availableStrategies.map((strategy) => (
-              <Link
-                key={strategy}
-                href={buildHref(strategy, pharmacyFilter || 'all') as never}
-                className={chipClass(strategyFilter === strategy)}
-                aria-pressed={strategyFilter === strategy}
-              >
-                {strategy.replaceAll('-', ' ')}
-              </Link>
-            ))}
-          </div>
-          <div className="hero-actions" style={{ flexWrap: 'wrap' }}>
-            <Link
-              href={buildHref(strategyFilter || 'all', '') as never}
-              className={chipClass(!pharmacyFilter)}
-              aria-pressed={!pharmacyFilter}
-            >
-              All pharmacies
-            </Link>
-            {availablePharmacies.map((pharmacy) => (
-              <Link
-                key={pharmacy.id}
-                href={buildHref(strategyFilter || 'all', pharmacy.id) as never}
-                className={chipClass(pharmacyFilter === pharmacy.id)}
-                aria-pressed={pharmacyFilter === pharmacy.id}
-              >
-                {pharmacy.name}
-              </Link>
-            ))}
-          </div>
+          <FilterChips items={strategyItems} selectedValue={strategyFilter || 'all'} mode="link" />
+          <FilterChips items={pharmacyItems} selectedValue={pharmacyFilter || 'all'} mode="link" />
         </div>
       </div>
 

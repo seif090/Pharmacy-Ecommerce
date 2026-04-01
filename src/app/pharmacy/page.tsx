@@ -4,6 +4,7 @@ import { formatCurrency } from '@/lib/utils'
 import { NewProductForm } from '@/components/new-product-form'
 import { PrescriptionReviewList } from '@/components/prescription-review-list'
 import { requireUser } from '@/lib/auth'
+import { FilterChips, type FilterChipItem } from '@/components/filter-chips'
 
 function buildHref(orderStatus: string, prescriptionStatus: string) {
   const params = new URLSearchParams()
@@ -63,9 +64,26 @@ export default async function PharmacyPage({
     (prescription) => !prescriptionStatusFilter || prescription.status === prescriptionStatusFilter,
   )
 
-  function chipClass(active: boolean) {
-    return active ? 'button' : 'button button-secondary'
-  }
+  const orderItems: FilterChipItem[] = [
+    { value: 'all', label: 'All orders', href: buildHref('all', prescriptionStatusFilter) },
+    ...availableStatuses.map((status) => ({
+      value: status,
+      label: status.replaceAll('_', ' '),
+      href: buildHref(status, prescriptionStatusFilter),
+    })),
+  ]
+  const prescriptionItems: FilterChipItem[] = [
+    {
+      value: 'all',
+      label: 'All prescriptions',
+      href: buildHref(statusFilter || 'all', 'all'),
+    },
+    ...availablePrescriptionStatuses.map((status) => ({
+      value: status,
+      label: status.replaceAll('_', ' '),
+      href: buildHref(statusFilter || 'all', status),
+    })),
+  ]
 
   return (
     <section className="section">
@@ -149,25 +167,7 @@ export default async function PharmacyPage({
               Clear filters
             </Link>
           </div>
-          <div className="hero-actions" style={{ flexWrap: 'wrap' }}>
-            <Link
-              href={buildHref('', prescriptionStatusFilter) as never}
-              className={chipClass(!statusFilter)}
-              aria-pressed={!statusFilter}
-            >
-              All orders
-            </Link>
-            {availableStatuses.map((status) => (
-              <Link
-                key={status}
-                href={buildHref(status, prescriptionStatusFilter) as never}
-                className={chipClass(statusFilter === status)}
-                aria-pressed={statusFilter === status}
-              >
-                {status.replaceAll('_', ' ')}
-              </Link>
-            ))}
-          </div>
+          <FilterChips items={orderItems} selectedValue={statusFilter || 'all'} mode="link" />
         </div>
         <div className="stack">
           {filteredOrders.map((order) => (
@@ -208,25 +208,11 @@ export default async function PharmacyPage({
               Clear prescriptions
             </Link>
           </div>
-          <div className="hero-actions" style={{ flexWrap: 'wrap' }}>
-            <Link
-              href={buildHref(statusFilter, '') as never}
-              className={chipClass(!prescriptionStatusFilter)}
-              aria-pressed={!prescriptionStatusFilter}
-            >
-              All prescriptions
-            </Link>
-            {availablePrescriptionStatuses.map((status) => (
-              <Link
-                key={status}
-                href={buildHref(statusFilter, status) as never}
-                className={chipClass(prescriptionStatusFilter === status)}
-                aria-pressed={prescriptionStatusFilter === status}
-              >
-                {status.replaceAll('_', ' ')}
-              </Link>
-            ))}
-          </div>
+          <FilterChips
+            items={prescriptionItems}
+            selectedValue={prescriptionStatusFilter || 'all'}
+            mode="link"
+          />
         </div>
         <PrescriptionReviewList prescriptions={filteredPrescriptions} />
       </div>

@@ -48,7 +48,7 @@ export async function GET() {
   return new NextResponse(csv, {
     headers: {
       'content-type': 'text/csv; charset=utf-8',
-      'content-disposition': 'attachment; filename="pending-pharmacy-approvals.csv"',
+      'content-disposition': 'attachment; filename="pharmacy-approvals.csv"',
     },
   })
 }

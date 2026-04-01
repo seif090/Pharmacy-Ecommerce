@@ -163,11 +163,13 @@ export default async function PharmacyPage({
               <h4>Quick filters</h4>
               <p className="muted">Switch order status chips instantly.</p>
             </div>
-            <Link href="/pharmacy" className="button button-secondary">
-              Clear filters
-            </Link>
           </div>
-          <FilterChips items={orderItems} selectedValue={statusFilter || 'all'} mode="link" />
+          <FilterChips
+            items={orderItems}
+            selectedValue={statusFilter || 'all'}
+            mode="link"
+            resetHref="/pharmacy"
+          />
         </div>
         <div className="stack">
           {filteredOrders.map((order) => (
@@ -204,14 +206,12 @@ export default async function PharmacyPage({
               <h4>Quick filters</h4>
               <p className="muted">Switch prescription status chips instantly.</p>
             </div>
-            <Link href="/pharmacy" className="button button-secondary">
-              Clear prescriptions
-            </Link>
           </div>
           <FilterChips
             items={prescriptionItems}
             selectedValue={prescriptionStatusFilter || 'all'}
             mode="link"
+            resetHref="/pharmacy"
           />
         </div>
         <PrescriptionReviewList prescriptions={filteredPrescriptions} />

@@ -232,14 +232,12 @@ export function PrescriptionTracker() {
                 <h4>Quick filters</h4>
                 <p className="muted">Switch prescription status chips instantly.</p>
               </div>
-              <button type="button" className="button button-secondary" onClick={() => updateQuery({ status: 'ALL', page: '1' })}>
-                Clear filters
-              </button>
             </div>
             <FilterChips
               items={chipItems}
               selectedValue={statusFilter}
               mode="link"
+              resetHref={buildStatusHref('ALL')}
             />
           </div>
 

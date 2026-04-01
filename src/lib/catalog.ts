@@ -94,6 +94,31 @@ export async function getAdminNotifications() {
   })
 }
 
+export async function getAdminNotificationsPage(options?: { page?: number; pageSize?: number }) {
+  const prisma = getPrisma()
+  const pageSize = Math.max(1, Math.min(options?.pageSize ?? 8, 24))
+  const page = Math.max(1, options?.page ?? 1)
+  const total = await prisma.adminNotification.count()
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const items = await prisma.adminNotification.findMany({
+    orderBy: [{ readAt: 'asc' }, { createdAt: 'desc' }],
+    skip: (safePage - 1) * pageSize,
+    take: pageSize,
+    include: { pharmacy: true },
+  })
+
+  return {
+    items,
+    pagination: {
+      page: safePage,
+      pageSize,
+      total,
+      totalPages,
+    },
+  }
+}
+
 export async function getProducts(options?: {
   search?: string
   category?: string

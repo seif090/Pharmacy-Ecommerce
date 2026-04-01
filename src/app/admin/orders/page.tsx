@@ -112,19 +112,26 @@ export default async function AdminOrdersPage({
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 18 }}>
+        <div className="card" style={{ marginBottom: 18 }}>
           <div className="section-heading">
             <div>
               <h3>Quick filters</h3>
               <p className="muted">Tap a chip to switch instantly.</p>
             </div>
-            <Link href="/admin/orders" className="button button-secondary">
-              Clear filters
-            </Link>
           </div>
         <div className="stack">
-          <FilterChips items={strategyItems} selectedValue={strategyFilter || 'all'} mode="link" />
-          <FilterChips items={pharmacyItems} selectedValue={pharmacyFilter || 'all'} mode="link" />
+          <FilterChips
+            items={strategyItems}
+            selectedValue={strategyFilter || 'all'}
+            mode="link"
+            resetHref="/admin/orders"
+          />
+          <FilterChips
+            items={pharmacyItems}
+            selectedValue={pharmacyFilter || 'all'}
+            mode="link"
+            resetHref="/admin/orders"
+          />
         </div>
       </div>
 

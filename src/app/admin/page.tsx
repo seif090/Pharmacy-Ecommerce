@@ -215,6 +215,7 @@ export default async function AdminPage({
           statusItems={statusItems}
           pagination={approvalPageData.pagination}
           paginationItems={paginationItems}
+          resetHref={buildApprovalHref('all', 1)}
         />
       </div>
 

@@ -27,6 +27,7 @@ export function PharmacyApprovalList({
   statusItems,
   pagination,
   paginationItems,
+  resetHref,
 }: {
   pharmacies: ApprovalPharmacy[]
   selectedStatus: string
@@ -37,6 +38,7 @@ export function PharmacyApprovalList({
     total: number
   }
   paginationItems: PaginationChipItem[]
+  resetHref?: string
 }) {
   const [items, setItems] = useState(pharmacies)
 
@@ -77,7 +79,12 @@ export function PharmacyApprovalList({
             Page {pagination.page} of {pagination.totalPages} - {pagination.total} records
           </span>
         </div>
-        <FilterChips items={statusItems} selectedValue={selectedStatus} mode="link" />
+        <FilterChips
+          items={statusItems}
+          selectedValue={selectedStatus}
+          mode="link"
+          resetHref={resetHref}
+        />
       </div>
       <PaginationBar
         items={paginationItems}

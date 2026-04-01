@@ -16,6 +16,8 @@ type FilterChipsProps = {
   mode: 'link' | 'button'
   onSelect?: (value: string) => void
   className?: string
+  resetHref?: string
+  resetLabel?: string
 }
 
 export function FilterChips({
@@ -24,9 +26,16 @@ export function FilterChips({
   mode,
   onSelect,
   className = 'hero-actions',
+  resetHref,
+  resetLabel = 'Reset filters',
 }: FilterChipsProps) {
   return (
     <div className={className} style={{ flexWrap: 'wrap' }}>
+      {mode === 'link' && resetHref ? (
+        <Link href={resetHref as never} className="button button-secondary" aria-pressed={false}>
+          {resetLabel}
+        </Link>
+      ) : null}
       {items.map((item) => {
         const active = item.value === selectedValue
         const chipClass = active ? 'button' : 'button button-secondary'

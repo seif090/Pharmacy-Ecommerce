@@ -127,6 +127,9 @@ export async function getRecentOrders() {
           prescription: true,
         },
       },
+      assignmentEvents: {
+        orderBy: { createdAt: 'asc' },
+      },
     },
   })
 }

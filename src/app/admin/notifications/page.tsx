@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireUser } from '@/lib/auth'
 import { getAdminNotifications } from '@/lib/catalog'
+import { AdminNotificationList } from '@/components/admin-notification-list'
 
 export default async function AdminNotificationsPage() {
   await requireUser(['ADMIN'])
@@ -20,28 +21,7 @@ export default async function AdminNotificationsPage() {
       </div>
 
       {notifications.length ? (
-        <div className="stack">
-          {notifications.map((notification) => (
-            <article key={notification.id} className="card">
-              <div className="section-heading">
-                <div>
-                  <span className="badge">{notification.type.replaceAll('_', ' ')}</span>
-                  <h3>{notification.title}</h3>
-                </div>
-                <span className="badge">{notification.readAt ? 'Read' : 'Unread'}</span>
-              </div>
-              <p className="muted">{notification.message}</p>
-              {notification.pharmacy ? (
-                <p className="muted">
-                  <strong>{notification.pharmacy.name}</strong>
-                  <br />
-                  {notification.pharmacy.city}
-                </p>
-              ) : null}
-              <p className="muted">Created {notification.createdAt.toLocaleString()}</p>
-            </article>
-          ))}
-        </div>
+        <AdminNotificationList notifications={notifications} />
       ) : (
         <div className="empty-state">
           <h2>No notifications yet</h2>

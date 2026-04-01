@@ -59,7 +59,7 @@ export function PharmacyApprovalList({
           </p>
           <p className="muted">License: {pharmacy.licenseNumber}</p>
           <p className="muted">
-            {pharmacy._count.products} products · {pharmacy._count.pharmacyOrders} orders
+            {pharmacy._count.products} products - {pharmacy._count.pharmacyOrders} orders
           </p>
           <div className="hero-actions">
             <button type="button" className="button" onClick={() => updateStatus(pharmacy.id, 'ACTIVE')}>

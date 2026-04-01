@@ -52,7 +52,7 @@ export async function SiteHeader() {
           {user ? (
             <span className="badge">
               <UserCircle2 size={14} />
-              {user.name} · {user.role}
+              {user.name} - {user.role}
             </span>
           ) : (
             <Link href="/login" className="button button-secondary">

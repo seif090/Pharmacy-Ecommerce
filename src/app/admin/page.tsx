@@ -112,7 +112,7 @@ export default async function AdminPage() {
                 <div>
                   <strong>{pharmacy.name}</strong>
                   <p className="muted">
-                    {pharmacy.city} · {pharmacy.status} · {pharmacy._count.products} products
+                    {pharmacy.city} - {pharmacy.status} - {pharmacy._count.products} products
                   </p>
                 </div>
                 <span className="badge">{pharmacy.rating.toFixed(1)} rating</span>

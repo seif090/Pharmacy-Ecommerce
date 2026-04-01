@@ -4,6 +4,7 @@ import { getPharmacyOrderById } from '@/lib/catalog'
 import { requireUser } from '@/lib/auth'
 import { formatCurrency } from '@/lib/utils'
 import { OrderTimeline } from '@/components/order-timeline'
+import { AssignmentHistoryTimeline } from '@/components/assignment-history-timeline'
 
 export default async function PharmacyOrderDetailsPage({
   params,
@@ -94,25 +95,7 @@ export default async function PharmacyOrderDetailsPage({
             </div>
             <p className="muted">{order.assignmentEvents.length} event(s)</p>
           </div>
-          {order.assignmentEvents.length ? (
-            <div className="stack">
-              {order.assignmentEvents.map((event) => (
-                <article className="cart-row" key={event.id}>
-                  <div>
-                    <strong>{event.requestedItemName}</strong>
-                    <p className="muted">Strategy: {event.strategy.replaceAll('-', ' ')}</p>
-                    <p className="muted">{event.reason}</p>
-                  </div>
-                  <span className="badge">
-                    Score {event.score.toFixed(0)}
-                    {event.distanceKm != null ? ` · ${event.distanceKm.toFixed(1)} km` : ''}
-                  </span>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="muted">No assignment history recorded for this suborder yet.</p>
-          )}
+          <AssignmentHistoryTimeline events={order.assignmentEvents} />
         </div>
       </div>
     </section>

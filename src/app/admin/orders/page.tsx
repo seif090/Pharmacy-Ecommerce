@@ -98,16 +98,16 @@ export default async function AdminOrdersPage({
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 18 }}>
-        <div className="section-heading">
-          <div>
-            <h3>Quick filters</h3>
-            <p className="muted">Tap a chip to switch instantly.</p>
+        <div className="card" style={{ marginBottom: 18 }}>
+          <div className="section-heading">
+            <div>
+              <h3>Quick filters</h3>
+              <p className="muted">Tap a chip to switch instantly.</p>
+            </div>
+            <Link href="/admin/orders" className="button button-secondary">
+              Clear filters
+            </Link>
           </div>
-          <Link href="/admin/orders" className="button button-secondary">
-            Clear
-          </Link>
-        </div>
         <div className="stack">
           <div className="hero-actions" style={{ flexWrap: 'wrap' }}>
             <Link

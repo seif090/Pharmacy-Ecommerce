@@ -15,9 +15,14 @@ export default async function AdminNotificationsPage() {
           <h1>Admin notifications</h1>
           <p className="muted">Track pending pharmacy onboarding and marketplace alerts.</p>
         </div>
-        <Link href="/admin" className="button button-secondary">
-          Back to dashboard
-        </Link>
+        <div className="hero-actions">
+          <a href="/api/admin/exports/notifications" className="button button-secondary">
+            Export notifications CSV
+          </a>
+          <Link href="/admin" className="button button-secondary">
+            Back to dashboard
+          </Link>
+        </div>
       </div>
 
       {notifications.length ? (

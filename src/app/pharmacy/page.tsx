@@ -5,9 +5,27 @@ import { NewProductForm } from '@/components/new-product-form'
 import { PrescriptionReviewList } from '@/components/prescription-review-list'
 import { requireUser } from '@/lib/auth'
 
-export default async function PharmacyPage() {
+function buildHref(orderStatus: string) {
+  const params = new URLSearchParams()
+  if (orderStatus && orderStatus !== 'all') {
+    params.set('orderStatus', orderStatus)
+  }
+  const query = params.toString()
+  return query ? `/pharmacy?${query}` : '/pharmacy'
+}
+
+export default async function PharmacyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ orderStatus?: string }>
+}) {
   const user = await requireUser(['PHARMACY'])
   const pharmacyId = user.pharmacyId
+  const resolvedSearchParams = await searchParams
+  const statusFilter =
+    resolvedSearchParams.orderStatus && resolvedSearchParams.orderStatus !== 'all'
+      ? resolvedSearchParams.orderStatus
+      : ''
 
   if (!pharmacyId) {
     return (
@@ -27,6 +45,14 @@ export default async function PharmacyPage() {
   ])
 
   const pharmacy = pharmacies.find((item) => item.id === pharmacyId)
+  const availableStatuses = Array.from(new Set(dashboard.orders.map((order) => order.status)))
+  const filteredOrders = dashboard.orders.filter(
+    (order) => !statusFilter || order.status === statusFilter,
+  )
+
+  function chipClass(active: boolean) {
+    return active ? 'button' : 'button button-secondary'
+  }
 
   return (
     <section className="section">
@@ -97,8 +123,34 @@ export default async function PharmacyPage() {
             <p className="muted">Track your assigned pharmacy orders.</p>
           </div>
         </div>
+        <div className="card" style={{ marginBottom: 18 }}>
+          <div className="section-heading">
+            <div>
+              <h4>Quick filters</h4>
+              <p className="muted">Switch order status chips instantly.</p>
+            </div>
+            <Link href="/pharmacy" className="button button-secondary">
+              Clear filters
+            </Link>
+          </div>
+          <div className="hero-actions" style={{ flexWrap: 'wrap' }}>
+            <Link href={buildHref('') as never} className={chipClass(!statusFilter)} aria-pressed={!statusFilter}>
+              All orders
+            </Link>
+            {availableStatuses.map((status) => (
+              <Link
+                key={status}
+                href={buildHref(status) as never}
+                className={chipClass(statusFilter === status)}
+                aria-pressed={statusFilter === status}
+              >
+                {status.replaceAll('_', ' ')}
+              </Link>
+            ))}
+          </div>
+        </div>
         <div className="stack">
-          {dashboard.orders.map((order) => (
+          {filteredOrders.map((order) => (
             <article className="card" key={order.id}>
               <div className="section-heading">
                 <div>

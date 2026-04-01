@@ -5,8 +5,12 @@ import { useState } from 'react'
 
 export function NewProductForm({
   categories,
+  pharmacies,
+  pharmacyId,
 }: {
   categories: Array<{ slug: string; name: string }>
+  pharmacies: Array<{ id: string; name: string }>
+  pharmacyId?: string
 }) {
   const [message, setMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -20,6 +24,8 @@ export function NewProductForm({
 
     const payload = {
       name: String(formData.get('name') ?? ''),
+      scientificName: String(formData.get('scientificName') ?? '') || undefined,
+      manufacturer: String(formData.get('manufacturer') ?? '') || undefined,
       description: String(formData.get('description') ?? ''),
       dosage: String(formData.get('dosage') ?? '') || undefined,
       form: String(formData.get('form') ?? '') || undefined,
@@ -32,7 +38,10 @@ export function NewProductForm({
       imageUrl: String(formData.get('imageUrl') ?? '') || undefined,
       requiresPrescription: formData.get('requiresPrescription') === 'on',
       featured: formData.get('featured') === 'on',
+      lowStockThreshold: Number(formData.get('lowStockThreshold') ?? 10),
       tags: String(formData.get('tags') ?? '') || undefined,
+      pharmacyId: pharmacyId ?? String(formData.get('pharmacyId') ?? ''),
+      active: formData.get('active') === 'on',
     }
 
     try {
@@ -60,13 +69,23 @@ export function NewProductForm({
     <form className="card form-grid" onSubmit={handleSubmit}>
       <div className="section-heading">
         <h3>Add product</h3>
-        <p className="muted">Create a product without leaving the admin page.</p>
+        <p className="muted">Create a pharmacy-specific product listing.</p>
       </div>
       {message ? <div className="alert">{message}</div> : null}
       <div className="form-grid-2">
         <label>
-          Name
+          Product name
           <input name="name" required />
+        </label>
+        <label>
+          Scientific name
+          <input name="scientificName" />
+        </label>
+      </div>
+      <div className="form-grid-2">
+        <label>
+          Manufacturer
+          <input name="manufacturer" />
         </label>
         <label>
           Category
@@ -79,6 +98,18 @@ export function NewProductForm({
           </select>
         </label>
       </div>
+      {!pharmacyId ? (
+        <label>
+          Pharmacy
+          <select name="pharmacyId" defaultValue={pharmacies[0]?.id ?? ''} required>
+            {pharmacies.map((pharmacy) => (
+              <option key={pharmacy.id} value={pharmacy.id}>
+                {pharmacy.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <label>
         Description
         <textarea name="description" required rows={4} />
@@ -107,10 +138,16 @@ export function NewProductForm({
           <input name="stock" type="number" min="0" required />
         </label>
       </div>
-      <label>
-        Image URL
-        <input name="imageUrl" />
-      </label>
+      <div className="form-grid-2">
+        <label>
+          Low stock threshold
+          <input name="lowStockThreshold" type="number" min="0" defaultValue={10} />
+        </label>
+        <label>
+          Image URL
+          <input name="imageUrl" />
+        </label>
+      </div>
       <label>
         Tags
         <input name="tags" placeholder="pain,fever,headache" />
@@ -120,7 +157,10 @@ export function NewProductForm({
           <input name="requiresPrescription" type="checkbox" /> Requires prescription
         </label>
         <label>
-          <input name="featured" type="checkbox" /> Featured product
+          <input name="featured" type="checkbox" /> Featured
+        </label>
+        <label>
+          <input name="active" type="checkbox" defaultChecked /> Active
         </label>
       </div>
       <button className="button" type="submit" disabled={loading}>

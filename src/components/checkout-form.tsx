@@ -10,6 +10,8 @@ export function CheckoutForm() {
   const { items, total, clearCart } = useCart()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [locationStatus, setLocationStatus] = useState<string | null>(null)
+  const needsPrescription = items.some((item) => item.requiresPrescription)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -17,22 +19,12 @@ export function CheckoutForm() {
     setError(null)
 
     const formData = new FormData(event.currentTarget)
-    const payload = {
-      customerName: String(formData.get('customerName') ?? ''),
-      customerEmail: String(formData.get('customerEmail') ?? ''),
-      phone: String(formData.get('phone') ?? ''),
-      address: String(formData.get('address') ?? ''),
-      city: String(formData.get('city') ?? ''),
-      postalCode: String(formData.get('postalCode') ?? ''),
-      paymentMethod: String(formData.get('paymentMethod') ?? 'cash-on-delivery'),
-      items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
-    }
+    formData.set('items', JSON.stringify(items))
 
     try {
       const response = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: formData,
       })
 
       const result = (await response.json()) as { message?: string; orderNumber?: string }
@@ -80,6 +72,51 @@ export function CheckoutForm() {
           </select>
         </label>
       </div>
+      <div className="form-grid-2">
+        <label>
+          Latitude
+          <input name="deliveryLatitude" type="number" step="any" placeholder="31.2001" />
+        </label>
+        <label>
+          Longitude
+          <input name="deliveryLongitude" type="number" step="any" placeholder="29.9187" />
+        </label>
+      </div>
+      <button
+        type="button"
+        className="button button-secondary"
+        onClick={() => {
+          if (!navigator.geolocation) {
+            setLocationStatus('Geolocation is not available in this browser.')
+            return
+          }
+
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords
+              const latitudeInput = document.querySelector<HTMLInputElement>(
+                'input[name="deliveryLatitude"]',
+              )
+              const longitudeInput = document.querySelector<HTMLInputElement>(
+                'input[name="deliveryLongitude"]',
+              )
+              if (latitudeInput) latitudeInput.value = String(latitude)
+              if (longitudeInput) longitudeInput.value = String(longitude)
+              setLocationStatus(`Using current location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
+            },
+            () => {
+              setLocationStatus('Unable to read location. You can enter it manually.')
+            },
+          )
+        }}
+      >
+        Use my location
+      </button>
+      {locationStatus ? <p className="muted">{locationStatus}</p> : null}
+      <label>
+        Prescription file
+        <input name="prescriptionFile" type="file" accept="image/*,.pdf" required={needsPrescription} />
+      </label>
       <label>
         Address
         <input name="address" required placeholder="12 Ahmed Orabi St." />
@@ -99,6 +136,7 @@ export function CheckoutForm() {
       </button>
       <p className="muted">
         Total before shipping: {total.toFixed(2)} USD. Orders above 150 USD get free shipping.
+        {needsPrescription ? ' A prescription file is required for at least one item.' : ''}
       </p>
     </form>
   )

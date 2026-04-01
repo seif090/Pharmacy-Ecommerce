@@ -16,10 +16,57 @@ model Category {
   updatedAt DateTime  @updatedAt
 }
 
+model Pharmacy {
+  id              String          @id @default(cuid())
+  name            String
+  slug            String          @unique
+  licenseNumber   String          @unique
+  address         String
+  city            String
+  latitude        Float?
+  longitude       Float?
+  commissionRate  Float           @default(0.08)
+  rating          Float           @default(0)
+  status          PharmacyStatus  @default(ACTIVE)
+  products        Product[]
+  users           PharmacyUser[]
+  pharmacyOrders  PharmacyOrder[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model PharmacyUser {
+  id           String     @id @default(cuid())
+  pharmacyId   String?
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         UserRole   @default(PHARMACY)
+  active       Boolean    @default(true)
+  pharmacy     Pharmacy?  @relation(fields: [pharmacyId], references: [id], onDelete: SetNull)
+  sessions     Session[]
+  reviewedPrescriptions Prescription[] @relation("PrescriptionReviewer")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Session {
+  id         String       @id @default(cuid())
+  tokenHash  String       @unique
+  userId     String
+  expiresAt  DateTime
+  user       PharmacyUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+}
+
 model Product {
   id                   String      @id @default(cuid())
+  pharmacyId           String
   name                 String
   slug                 String      @unique
+  routeKey             String
+  scientificName       String?
+  manufacturer         String?
   description          String
   dosage               String?
   form                 String?
@@ -29,9 +76,12 @@ model Product {
   imageUrl             String?
   requiresPrescription Boolean     @default(false)
   featured             Boolean     @default(false)
+  lowStockThreshold    Int         @default(10)
+  active               Boolean     @default(true)
   tags                 String?
   categoryId           String?
   category             Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  pharmacy             Pharmacy    @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
   orderItems           OrderItem[]
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
@@ -46,32 +96,104 @@ model CustomerOrder {
   phone         String
   address       String
   city          String
+  deliveryLatitude  Float?
+  deliveryLongitude Float?
   postalCode    String
   subtotal      Decimal
   shipping      Decimal
   total         Decimal
   paymentMethod String
-  items         OrderItem[]
+  prescriptions Prescription[]
+  pharmacyOrders PharmacyOrder[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
 
+model PharmacyOrder {
+  id               String        @id @default(cuid())
+  customerOrderId   String
+  pharmacyId        String
+  status            PharmacyOrderStatus @default(PENDING)
+  subtotal          Decimal
+  shipping          Decimal
+  total             Decimal
+  commissionAmount  Decimal
+  estimatedSlaMins  Int           @default(30)
+  notes             String?
+  customerOrder     CustomerOrder @relation(fields: [customerOrderId], references: [id], onDelete: Cascade)
+  pharmacy          Pharmacy      @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  items             OrderItem[]
+  prescription      Prescription?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
 model OrderItem {
   id          String        @id @default(cuid())
-  orderId     String
+  pharmacyOrderId String
   productId   String
   productName String
   quantity    Int
   unitPrice   Decimal
   lineTotal   Decimal
-  order       CustomerOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  pharmacyOrder PharmacyOrder @relation(fields: [pharmacyOrderId], references: [id], onDelete: Cascade)
   product     Product       @relation(fields: [productId], references: [id])
+}
+
+model Prescription {
+  id               String        @id @default(cuid())
+  customerOrderId   String
+  pharmacyOrderId   String?       @unique
+  status           PrescriptionStatus @default(PENDING)
+  fileName         String
+  mimeType         String
+  fileData         String
+  customerName     String
+  customerEmail    String
+  customerPhone    String
+  notes            String?
+  reviewerId       String?
+  reviewer         PharmacyUser? @relation("PrescriptionReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  customerOrder    CustomerOrder @relation(fields: [customerOrderId], references: [id], onDelete: Cascade)
+  pharmacyOrder    PharmacyOrder? @relation(fields: [pharmacyOrderId], references: [id], onDelete: SetNull)
+  reviewedAt       DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 }
 
 enum OrderStatus {
   PENDING
+  PARTIALLY_CONFIRMED
+  CONFIRMED
+  READY
   PROCESSING
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+enum PharmacyOrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PrescriptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PharmacyStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+}
+
+enum UserRole {
+  ADMIN
+  PHARMACY
 }

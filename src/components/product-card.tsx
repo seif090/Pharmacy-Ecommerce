@@ -10,12 +10,14 @@ export function ProductCard({
     id: string
     name: string
     slug: string
+    routeKey: string
     description: string
     price: unknown
     discountPrice: unknown | null
     stock: number
     featured: boolean
     requiresPrescription: boolean
+    pharmacy: { id: string; name: string; city?: string | null }
     category?: { name: string } | null
   }
 }) {
@@ -24,6 +26,7 @@ export function ProductCard({
   return (
     <article className="card product-card">
       <div className="product-topline">
+        <span className="badge">{product.pharmacy.name}</span>
         <span className="badge">{product.category?.name ?? 'General'}</span>
         {product.requiresPrescription ? (
           <span className="badge badge-warn">
@@ -53,6 +56,10 @@ export function ProductCard({
             id: product.id,
             name: product.name,
             price: Number(price),
+            routeKey: product.routeKey,
+            pharmacyId: product.pharmacy.id,
+            pharmacyName: product.pharmacy.name,
+            requiresPrescription: product.requiresPrescription,
           }}
         />
       </div>

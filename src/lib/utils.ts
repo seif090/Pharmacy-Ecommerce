@@ -19,3 +19,13 @@ export function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 }
+
+export function makeRouteKey({
+  scientificName,
+  name,
+}: {
+  scientificName?: string | null
+  name: string
+}) {
+  return (scientificName ?? name).trim().toLowerCase()
+}

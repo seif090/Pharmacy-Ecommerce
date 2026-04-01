@@ -7,7 +7,15 @@ import { useCart } from '@/components/cart-provider'
 export function AddToCartButton({
   product,
 }: {
-  product: { id: string; name: string; price: number }
+  product: {
+    id: string
+    name: string
+    price: number
+    routeKey: string
+    pharmacyId: string
+    pharmacyName: string
+    requiresPrescription: boolean
+  }
 }) {
   const [added, setAdded] = useState(false)
   const { addItem } = useCart()

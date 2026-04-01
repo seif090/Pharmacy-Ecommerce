@@ -34,7 +34,10 @@ export function CartClient() {
             <article className="cart-row" key={item.id}>
               <div>
                 <strong>{item.name}</strong>
-                <p className="muted">{formatCurrency(item.price)} each</p>
+                <p className="muted">
+                  {item.pharmacyName} · {formatCurrency(item.price)} each
+                  {item.requiresPrescription ? ' · Rx' : ''}
+                </p>
               </div>
               <div className="qty-controls">
                 <button

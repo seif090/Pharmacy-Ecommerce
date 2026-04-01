@@ -22,6 +22,7 @@ export default async function ProductDetailsPage({
     <section className="hero-grid">
       <div className="hero-panel">
         <div className="product-topline">
+          <span className="badge">{product.pharmacy?.name ?? 'Marketplace'}</span>
           <span className="badge">{product.category?.name ?? 'General'}</span>
           {product.requiresPrescription ? (
             <span className="badge badge-warn">
@@ -54,7 +55,17 @@ export default async function ProductDetailsPage({
               </div>
             ) : null}
           </div>
-          <AddToCartButton product={{ id: product.id, name: product.name, price }} />
+        <AddToCartButton
+          product={{
+            id: product.id,
+            name: product.name,
+            price,
+            routeKey: product.routeKey,
+            pharmacyId: product.pharmacy?.id ?? '',
+            pharmacyName: product.pharmacy?.name ?? 'Marketplace',
+            requiresPrescription: product.requiresPrescription,
+          }}
+          />
         </div>
       </div>
     </section>

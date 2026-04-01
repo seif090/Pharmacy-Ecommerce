@@ -18,6 +18,8 @@ export const checkoutSchema = z.object({
 
 export const productSchema = z.object({
   name: z.string().min(2),
+  scientificName: z.string().optional(),
+  manufacturer: z.string().optional(),
   description: z.string().min(10),
   dosage: z.string().optional(),
   form: z.string().optional(),
@@ -25,8 +27,11 @@ export const productSchema = z.object({
   price: z.number().positive(),
   discountPrice: z.number().positive().optional(),
   categorySlug: z.string().min(2),
+  pharmacyId: z.string().optional(),
   imageUrl: z.string().optional(),
   requiresPrescription: z.boolean().default(false),
   featured: z.boolean().default(false),
+  lowStockThreshold: z.number().int().nonnegative().optional(),
+  active: z.boolean().default(true),
   tags: z.string().optional(),
 })

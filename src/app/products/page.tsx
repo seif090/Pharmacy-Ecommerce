@@ -1,5 +1,5 @@
 import { ProductsBrowser } from '@/components/products-browser'
-import { getCategories, getProducts } from '@/lib/catalog'
+import { getCategories, getPharmacies, getProducts } from '@/lib/catalog'
 
 export default async function ProductsPage({
   searchParams,
@@ -7,9 +7,10 @@ export default async function ProductsPage({
   searchParams: Promise<{ search?: string; category?: string }>
 }) {
   const params = await searchParams
-  const [products, categories] = await Promise.all([
+  const [products, categories, pharmacies] = await Promise.all([
     getProducts({ search: params.search, category: params.category }),
     getCategories(),
+    getPharmacies(),
   ])
 
   return (
@@ -21,7 +22,7 @@ export default async function ProductsPage({
           <p className="muted">Search by medicine name, category, or use-case.</p>
         </div>
       </div>
-      <ProductsBrowser products={products} categories={categories} />
+      <ProductsBrowser products={products} categories={categories} pharmacies={pharmacies} />
     </section>
   )
 }

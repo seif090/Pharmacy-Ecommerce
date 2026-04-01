@@ -36,7 +36,7 @@ export default async function HomePage() {
             </span>
             <span className="badge">
               <ShieldCheck size={14} />
-              {stats.categories} categories
+              {categories.length} categories
             </span>
             <span className="badge">
               <ChartColumnBig size={14} />

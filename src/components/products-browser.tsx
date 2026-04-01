@@ -10,20 +10,24 @@ type ProductBrowserProps = {
     id: string
     name: string
     slug: string
+    routeKey: string
     description: string
     price: unknown
     discountPrice: unknown | null
     stock: number
     featured: boolean
     requiresPrescription: boolean
+    pharmacy: { id: string; name: string; city: string }
     category?: { name: string; slug: string } | null
   }>
   categories: Array<{ slug: string; name: string }>
+  pharmacies: Array<{ id: string; name: string }>
 }
 
-export function ProductsBrowser({ products, categories }: ProductBrowserProps) {
+export function ProductsBrowser({ products, categories, pharmacies }: ProductBrowserProps) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
+  const [pharmacy, setPharmacy] = useState('all')
 
   const filtered = useMemo(() => {
     return products.filter((product) => {
@@ -34,9 +38,10 @@ export function ProductsBrowser({ products, categories }: ProductBrowserProps) {
           .toLowerCase()
           .includes(search.toLowerCase())
       const matchesCategory = category === 'all' || product.category?.slug === category
-      return matchesSearch && matchesCategory
+      const matchesPharmacy = pharmacy === 'all' || product.pharmacy.id === pharmacy
+      return matchesSearch && matchesCategory && matchesPharmacy
     })
-  }, [products, search, category])
+  }, [products, search, category, pharmacy])
 
   return (
     <div>
@@ -53,6 +58,14 @@ export function ProductsBrowser({ products, categories }: ProductBrowserProps) {
           <option value="all">All categories</option>
           {categories.map((item) => (
             <option key={item.slug} value={item.slug}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+        <select value={pharmacy} onChange={(event) => setPharmacy(event.target.value)}>
+          <option value="all">All pharmacies</option>
+          {pharmacies.map((item) => (
+            <option key={item.id} value={item.id}>
               {item.name}
             </option>
           ))}
